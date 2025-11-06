@@ -1,242 +1,169 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Temp Dynamic Login (Demo)</title>
-  <style>
-    :root{--bg:#0f1720;--card:#0b1220;--accent:#60a5fa;--muted:#9aa7b2;--ok:#10b981;--bad:#ef4444}
-    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
-    body{margin:0;background:linear-gradient(180deg,#071027 0%, #08233a 100%);color:#e6eef6;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-    .wrap{width:100%;max-width:980px;display:grid;grid-template-columns:1fr 420px;gap:28px}
-    .panel{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:12px;padding:20px;box-shadow:0 6px 20px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
-    .brand{font-size:20px;font-weight:700;color:var(--accent);display:flex;gap:10px;align-items:center}
-    .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px rgba(96,165,250,0.25)}
-    form{display:flex;flex-direction:column;gap:12px;margin-top:12px}
-    label{font-size:13px;color:var(--muted)}
-    input[type="text"], input[type="password"]{padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;outline:none}
-    .row{display:flex;gap:12px;align-items:center}
-    button{background:var(--accent);border:none;padding:10px 12px;border-radius:8px;color:#042033;font-weight:700;cursor:pointer}
-    button.secondary{background:transparent;color:var(--accent);border:1px dashed rgba(96,165,250,0.18)}
-    .hint{font-size:12px;color:var(--muted)}
-    .logs{max-height:420px;overflow:auto;padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);font-family:monospace;font-size:13px;color:#cfe8ff}
-    .log-item{padding:8px;border-radius:6px;margin-bottom:8px;border-left:4px solid rgba(255,255,255,0.03)}
-    .log-ok{border-left-color:var(--ok);background:rgba(16,185,129,0.03)}
-    .log-fail{border-left-color:var(--bad);background:rgba(239,68,68,0.04)}
-    .meta{font-size:12px;color:var(--muted);margin-top:6px}
-    .controls{display:flex;gap:8px;flex-wrap:wrap}
-    @media(max-width:900px){.wrap{grid-template-columns:1fr;}}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ecomm Demo | Sanket Store</title>
+<style>
+  *{box-sizing:border-box;font-family:Inter,Segoe UI,Arial;}
+  body{margin:0;background:#f7f9fb;color:#222;}
+  header{background:#111;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:16px 32px;}
+  header h1{margin:0;font-size:1.4rem;letter-spacing:0.5px;}
+  .cart-icon{cursor:pointer;position:relative;}
+  .cart-icon span{position:absolute;top:-8px;right:-8px;background:red;color:white;font-size:12px;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;}
+  main{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;padding:20px;}
+  .product{background:#fff;border-radius:12px;box-shadow:0 4px 8px rgba(0,0,0,0.05);padding:16px;display:flex;flex-direction:column;}
+  .product img{width:100%;border-radius:10px;object-fit:cover;}
+  .product h3{margin:12px 0 6px;}
+  .product p{color:#555;font-size:14px;}
+  .product .price{font-weight:bold;font-size:1rem;margin:8px 0;}
+  .product button{padding:10px;background:#111;color:#fff;border:none;border-radius:6px;cursor:pointer;}
+  .cart{position:fixed;top:0;right:-420px;width:380px;height:100%;background:#fff;box-shadow:-2px 0 10px rgba(0,0,0,0.1);transition:right 0.3s;padding:20px;display:flex;flex-direction:column;}
+  .cart.active{right:0;}
+  .cart h2{margin:0 0 16px;}
+  .cart-items{flex:1;overflow:auto;}
+  .cart-item{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;border-bottom:1px solid #eee;padding-bottom:8px;}
+  .cart-item img{width:60px;border-radius:6px;}
+  .cart-item .info{flex:1;margin-left:10px;}
+  .cart-item .info h4{margin:0;font-size:14px;}
+  .cart-item .info span{font-size:12px;color:#555;}
+  .cart-item .qty{display:flex;align-items:center;gap:6px;}
+  .cart-item button{border:none;background:#111;color:white;padding:4px 8px;border-radius:4px;cursor:pointer;}
+  .cart-total{border-top:1px solid #ddd;padding-top:10px;margin-top:10px;display:flex;justify-content:space-between;align-items:center;}
+  .checkout{margin-top:12px;background:#111;color:#fff;border:none;padding:10px;border-radius:6px;cursor:pointer;width:100%;}
+  footer{text-align:center;padding:16px;background:#111;color:#aaa;margin-top:20px;}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="panel">
-      <div class="brand"><span class="dot"></span>Temp Dynamic Login (Demo)</div>
-      <p class="hint">This page demonstrates fetching and logging attempts locally. Replace with real backend authentication for production.</p>
-
-      <form id="loginForm" autocomplete="off" onsubmit="return false;">
-        <div>
-          <label for="username">Username</label>
-          <input id="username" name="username" type="text" placeholder="Enter username" required />
-        </div>
-        <div>
-          <label for="password">Password</label>
-          <input id="password" name="password" type="password" placeholder="Enter password" required />
-        </div>
-
-        <div class="row">
-          <button id="loginBtn">Login</button>
-          <button class="secondary" id="clearBtn" type="button">Clear Logs</button>
-          <div style="flex:1"></div>
-          <span id="status" class="hint"></span>
-        </div>
-
-        <div class="meta">
-          Demo credentials — <strong>username:</strong> <code>demo</code> <strong>password:</strong> <code>Secret123!</code>
-        </div>
-      </form>
+  <header>
+    <h1>🛒 Sanket eComm Demo</h1>
+    <div class="cart-icon" id="cartToggle">
+      🛍️ Cart <span id="cartCount">0</span>
     </div>
+  </header>
 
-    <div class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="font-weight:700">Login Attempts</div>
-        <div class="controls">
-          <button id="exportBtn" type="button" class="secondary">Export Logs</button>
-          <button id="importBtn" type="button" class="secondary">Import (Paste JSON)</button>
-        </div>
-      </div>
+  <main id="productList"></main>
 
-      <div id="logs" class="logs" aria-live="polite"></div>
+  <div class="cart" id="cartPanel">
+    <h2>Your Cart</h2>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-total">
+      <strong>Total:</strong>
+      <span id="cartTotal">₹0</span>
     </div>
+    <button class="checkout" id="checkoutBtn">Checkout</button>
   </div>
 
-  <script>
-    // Demo credentials (client-side only for demo)
-    const DEMO_USER = 'demo';
-    const DEMO_PASS = 'Secret123!';
+  <footer>© 2025 Sanket Store Demo | Static Frontend Only</footer>
 
-    // Log storage key
-    const STORAGE_KEY = 'temp_login_demo_logs_v1';
+<script>
+// ===== Product Data =====
+const products = [
+  {id:1, name:"Wireless Headphones", price:1999, img:"https://picsum.photos/seed/headphones/300/200", desc:"High-quality Bluetooth sound."},
+  {id:2, name:"Smart Watch", price:2499, img:"https://picsum.photos/seed/watch/300/200", desc:"Track your health and fitness."},
+  {id:3, name:"Laptop Bag", price:899, img:"https://picsum.photos/seed/bag/300/200", desc:"Stylish and durable laptop bag."},
+  {id:4, name:"Gaming Mouse", price:1199, img:"https://picsum.photos/seed/mouse/300/200", desc:"Ergonomic RGB gaming mouse."},
+  {id:5, name:"Keyboard", price:999, img:"https://picsum.photos/seed/keyboard/300/200", desc:"Mechanical keyboard for pros."},
+  {id:6, name:"Portable Speaker", price:1599, img:"https://picsum.photos/seed/speaker/300/200", desc:"Powerful bass, waterproof design."}
+];
 
-    // DOM refs
-    const form = document.getElementById('loginForm');
-    const usernameEl = document.getElementById('username');
-    const passwordEl = document.getElementById('password');
-    const loginBtn = document.getElementById('loginBtn');
-    const logsEl = document.getElementById('logs');
-    const clearBtn = document.getElementById('clearBtn');
-    const statusEl = document.getElementById('status');
-    const exportBtn = document.getElementById('exportBtn');
-    const importBtn = document.getElementById('importBtn');
+// ===== Cart Data =====
+let cart = JSON.parse(localStorage.getItem("cart") || "[]");
 
-    // Load logs from localStorage
-    let logs = loadLogs();
-    renderLogs();
+const productList = document.getElementById("productList");
+const cartPanel = document.getElementById("cartPanel");
+const cartCount = document.getElementById("cartCount");
+const cartItems = document.getElementById("cartItems");
+const cartTotal = document.getElementById("cartTotal");
+const cartToggle = document.getElementById("cartToggle");
+const checkoutBtn = document.getElementById("checkoutBtn");
 
-    loginBtn.addEventListener('click', async () => {
-      // simple UI feedback
-      setStatus('Processing...', false);
+// ===== Render Products =====
+function renderProducts() {
+  productList.innerHTML = products.map(p => `
+    <div class="product">
+      <img src="${p.img}" alt="${p.name}" />
+      <h3>${p.name}</h3>
+      <p>${p.desc}</p>
+      <div class="price">₹${p.price}</div>
+      <button onclick="addToCart(${p.id})">Add to Cart</button>
+    </div>
+  `).join("");
+}
 
-      const username = usernameEl.value.trim();
-      const password = passwordEl.value;
+// ===== Add to Cart =====
+function addToCart(id) {
+  const item = products.find(p => p.id === id);
+  const existing = cart.find(c => c.id === id);
+  if (existing) existing.qty += 1;
+  else cart.push({...item, qty:1});
+  saveCart();
+  updateCartUI();
+}
 
-      if (!username || !password) {
-        setStatus('Please enter username & password', true);
-        return;
-      }
+// ===== Remove from Cart =====
+function removeFromCart(id) {
+  cart = cart.filter(c => c.id !== id);
+  saveCart();
+  updateCartUI();
+}
 
-      // Simulate a server-side call (delay)
-      await wait(500);
+// ===== Change Quantity =====
+function changeQty(id, delta) {
+  const item = cart.find(c => c.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) removeFromCart(id);
+  else saveCart();
+  updateCartUI();
+}
 
-      const success = (username === DEMO_USER && password === DEMO_PASS);
-
-      // create log entry (do not store raw password in production)
-      const entry = {
-        id: cryptoId(),
-        ts: new Date().toISOString(),
-        username,
-        // for demo we store only length of password and masked version
-        passMask: '*'.repeat(Math.min(6, password.length)) + (password.length > 6 ? '…' : ''),
-        passLen: password.length,
-        success
-      };
-
-      logs.unshift(entry); // newest first
-      saveLogs();
-      renderLogs();
-
-      if (success) {
-        setStatus('Login successful — showing protected area (demo)', false);
-        showProtectedArea();
-      } else {
-        setStatus('Invalid credentials', true);
-      }
-    });
-
-    clearBtn.addEventListener('click', () => {
-      if (!confirm('Clear all logs?')) return;
-      logs = [];
-      saveLogs();
-      renderLogs();
-      setStatus('Logs cleared', false);
-    });
-
-    exportBtn.addEventListener('click', () => {
-      const payload = JSON.stringify(logs, null, 2);
-      downloadTextFile('login-logs.json', payload);
-    });
-
-    importBtn.addEventListener('click', async () => {
-      const pasted = prompt('Paste JSON logs to import (will append):');
-      if (!pasted) return;
-      try {
-        const arr = JSON.parse(pasted);
-        if (!Array.isArray(arr)) throw new Error('Not an array');
-        logs = arr.concat(logs);
-        saveLogs();
-        renderLogs();
-        setStatus('Imported logs', false);
-      } catch (e) {
-        alert('Invalid JSON: ' + e.message);
-      }
-    });
-
-    // Helpers
-    function renderLogs() {
-      logsEl.innerHTML = logs.length ? logs.map(renderLogItem).join('') : '<div style="opacity:.6">No attempts yet</div>';
-    }
-
-    function renderLogItem(entry) {
-      const cls = entry.success ? 'log-item log-ok' : 'log-item log-fail';
-      return `
-        <div class="${cls}">
-          <div><strong>${escapeHtml(entry.username)}</strong> — <span style="font-size:12px">${escapeHtml(entry.passMask)} (len: ${entry.passLen})</span></div>
-          <div style="font-size:13px;margin-top:6px">${entry.success ? '✅ Success' : '❌ Failure'}</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:6px">${new Date(entry.ts).toLocaleString()}</div>
+// ===== Render Cart =====
+function updateCartUI() {
+  cartItems.innerHTML = cart.length
+    ? cart.map(i => `
+      <div class="cart-item">
+        <img src="${i.img}" alt="${i.name}" />
+        <div class="info">
+          <h4>${i.name}</h4>
+          <span>₹${i.price} x ${i.qty}</span>
         </div>
-      `;
-    }
-
-    function saveLogs() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
-      } catch (e) {
-        console.warn('Could not persist logs', e);
-      }
-    }
-
-    function loadLogs() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch (e) {
-        return [];
-      }
-    }
-
-    function setStatus(text, isError) {
-      statusEl.textContent = text;
-      statusEl.style.color = isError ? 'var(--bad)' : '';
-      setTimeout(() => {
-        if (statusEl.textContent === text) statusEl.textContent = '';
-      }, 4500);
-    }
-
-    function showProtectedArea() {
-      // temporary demo action: replace form with a protected message
-      form.innerHTML = `
-        <div style="padding:18px">
-          <h2>Protected Area (Demo)</h2>
-          <p class="hint">You are logged in as <strong>${escapeHtml(DEMO_USER)}</strong>.</p>
-          <button id="logoutBtn" class="secondary">Logout</button>
+        <div class="qty">
+          <button onclick="changeQty(${i.id},-1)">-</button>
+          <span>${i.qty}</span>
+          <button onclick="changeQty(${i.id},1)">+</button>
         </div>
-      `;
-      document.getElementById('logoutBtn').addEventListener('click', () => {
-        location.reload();
-      });
-    }
+      </div>
+    `).join("")
+    : "<p>No items in cart.</p>";
 
-    function wait(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
+  const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+  cartTotal.textContent = "₹" + total.toLocaleString();
+  cartCount.textContent = cart.reduce((sum, i) => sum + i.qty, 0);
+}
 
-    function cryptoId() {
-      try {
-        return Array.from(crypto.getRandomValues(new Uint8Array(8))).map(n => n.toString(16).padStart(2,'0')).join('');
-      } catch (e) {
-        return Math.random().toString(36).slice(2,10);
-      }
-    }
+// ===== Save Cart =====
+function saveCart() {
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
 
-    function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+// ===== Toggle Cart Panel =====
+cartToggle.onclick = () => {
+  cartPanel.classList.toggle("active");
+};
 
-    function downloadTextFile(filename, text) {
-      const a = document.createElement('a');
-      const blob = new Blob([text], {type: 'application/json'});
-      a.href = URL.createObjectURL(blob);
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }
-  </script>
+// ===== Checkout =====
+checkoutBtn.onclick = () => {
+  if (!cart.length) return alert("Cart is empty!");
+  alert("✅ Order placed successfully (demo only).");
+  cart = [];
+  saveCart();
+  updateCartUI();
+};
+
+// ===== Init =====
+renderProducts();
+updateCartUI();
+</script>
 </body>
 </html>
-
