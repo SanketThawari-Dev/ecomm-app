@@ -1,0 +1,911 @@
+Ecomm App Project Guide:
+
+
+Folder Structure 
+
+/var/www/html/
+├── app.py
+├── db.sql
+├── requirements.txt
+├── venv/                     # Python virtual environment (auto-generated)
+└── api/                      # Frontend HTML files and static assets
+    ├── cart.html
+    ├── contact.html
+    ├── home.html
+    ├── index.html
+    ├── logout.html
+    ├── order-history.html
+    ├── order.html
+    ├── products.html
+    ├── signup.html
+    └── images/               # Static image assets
+
+
+
+OS- ubuntu 24.04
+
+open port - 3306 , 80, 5000
+
+sudo apt update && sudo apt upgrade -y
+
+sudo apt update
+
+sudo apt install python3-pip python3-venv nginx mysql-server
+
+sudo chown -R ubuntu:ubuntu /var/www/html
+
+sudo chmod -R 755 /var/www/html
+
+cd /var/www/html
+
+create one  requirements.txt file and add below things:  vi requirements.txt
+
+Flask
+mysql-connector-python
+gunicorn
+
+:wq
+
+
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+
+sudo mysql_secure_installation
+
+create one db.sql file and import the database
+
+
+sudo systemctl start MySQL
+
+sudo mysql -u root -p < db.sql
+
+
+create one database user "techmspire"  and keep passwoord "securepass" and grant all access and flush the privileges
+
+
+mkdir /var/ww/html/api
+
+cp -r *.html /var/www/html/api
+
+cp app.py /var/www/html
+
+cp -r db.sql /var/www/html
+
+
+gunicorn --bind 127.0.0.1:5000 app:app
+
+sudo vi /etc/nginx/sites-available/techmspire.conf
+
+Fil  techmspire.conf
+###############
+server {
+    listen 80;
+    server_name your_domain_or_ip;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /static/ {
+        alias /var/www/html/api/;  # update path as needed
+    }
+}
+
+################
+
+
+ls -l
+
+sudo ln -s /etc/nginx/sites-available/techmspire.conf /etc/nginx/sites-enabled/
+
+delete the default file  from sites available and enabled 
+
+sudo nginx -t
+
+sudo systemctl restart nginx
+
+
+
+
+sudo mysql -u techmspire -p securepass
+
+
+sudo mysql -u root -p
+
+use ecommerce_db;
+show tables;
+
+#########################################################
+Below commands are just for reference .. Not important now 
+
+INSERT INTO users (username, email, password)
+VALUES ('admin', 'admin@example.com', 'admin123');
+
+CREATE USER 'techmspire'@'localhost' IDENTIFIED BY 'securepass';
+
+GRANT ALL PRIVILEGES ON ecommerce.* TO 'techmspire'@'localhost';
+
+CREATE USER 'om'@'localhost' IDENTIFIED BY 'ombelekar@2025';
+
+GRANT ALL PRIVILEGES ON ecommerce.* TO 'om'@'localhost';
+
+GRANT ALL PRIVILEGES ON ecommerce.* TO 'nishi'@'localhost';
+
+
+
+
+INSERT INTO users (username, email, password)
+VALUES ('saanjh', 'saanjh@example.com', 'Saanjh@2025');
+
+
+INSERT INTO users (username, email, password)
+VALUES ('ruchi', 'ruchi@example.com', 'Ruchi@2025');
+
+INSERT INTO users (username, email, password)
+VALUES ('om', 'om@example.com', 'om@2025');
+
+FLUSH PRIVILEGES;
+
+
+ALTER USER 'techmspire'@'localhost' IDENTIFIED WITH mysql_native_password BY 'securepass';
+FLUSH PRIVILEGES;
+
+exit
+
+
+###########################################################
+
+
+
+sudo vi /etc/systemd/system/gunicorn.service
+
+
+[Unit]
+Description=Gunicorn for Techmspire Flask app
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/var/www/html
+Environment="PATH=/var/www/html/venv/bin"
+ExecStart=/var/www/html/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:5000 app:app
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl start gunicorn
+sudo systemctl enable gunicorn
+
+
+- Adding user-specific order history
+- Generating receipts or invoices with order breakdow
+- Even integrating search or category filters
+- Admin panel to manage inventory or approve order
+
+
+#################################################
+
+
+Below commands only for reference  to add new product if u have images 
+
+
+
+inside MySQL ecommerce_db
+
+
+
+
+USE ecommerce_db;
+
+ALTER TABLE products
+ADD COLUMN category VARCHAR(100),
+ADD COLUMN image_url VARCHAR(255);
+
+
+mysql> describe products;
+
+INSERT INTO products (name, price, category, image_url)
+VALUES ('Samsung Speaker', 2569.00, 'Audio', '/static/images/Bluetooth Speaker.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+VALUES ('Boat Earbuds', 1999.00, 'Audio', '/static/images/Bluetooth Earbuds.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+    VALUES ('Samsung Speaker', 2569.00, 'Audio', '/static/images/Bluetooth Speaker.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('External HDD 1TB', 5100.00, 'Accessories', '/static/images/External HDD 1TB.jpg');
+
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Fitness Band', 3100.00, 'Accessories', '/static/images/Fitness Band.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Gaming Monitor', 11450.00, 'Laptop', '/static/images/Gaming Monitor 24.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Laptop 14-inch', 43999.00, 'Audio', '/static/images/Laptop 14-inch.jpg');
+
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('HP Laser Printer', 8759.00, 'Audio', '/static/images/Laser Printer.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Mechanical Keyboard', 1300.00, 'Audio', '/static/images/Mechanical Keyboard.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Soundbar 2.1', 9999.00, 'Audio', '/static/images/Soundbar 2.1.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('USB-C Cable', 999.00, 'Audio', '/static/images/USB-C Cable.jpg');
+
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Samsung Webcam HD', 4599.00, 'Audio', '/static/images/Webcam HD.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+    VALUES ('Wireless Mouse', 2699.00, 'Audio', '/static/images/Wireless Mouse.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+    VALUES ('Smartphone X1', 23999.00, 'Accessories', '/static/images/Smartphone X1.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Samsung Speaker', 8999.00, 'Audio', '/static/images/Smart TV 43.jpg');
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Router Dual Band', 3726.00, 'Accessories', '/static/images/Router Dual Band.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Power Bank 20,000mAh', 1999.00, 'Accessories', '/static/images/Power Bank 20,000mAh.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Soundbar 2.1', 1999.00, 'Audio', '/static/images/Soundbar 2.1.jpg');
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Smartwatch Pro', 1999.00, 'Accessories', '/static/images/Smartwatch Pro.jpg');
+
+
+INSERT INTO products (name, price, category, image_url)
+     VALUES ('Smartphone X1', 1999.00, 'Accessories', '/static/images/Smartphone X1.jpg');
+
+
+
+UPDATE products
+SET category = 'Audio',
+    image_url = '/var/www/html/api/images/Bluetooth Earbuds.jpg'
+WHERE id = 1;
+
+#######################################################################################################
+
+
+
+##############################################
+
+app.py file 
+from flask import Flask, request, session, jsonify, render_template, redirect
+import mysql.connector
+
+app = Flask(__name__, template_folder='api')
+app.secret_key = 'super_secret_key'
+
+DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'techmspire',
+    'password': 'securepass',
+    'database': 'ecommerce_db'
+}
+
+def get_db():
+    return mysql.connector.connect(**DB_CONFIG)
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/home')
+def home():
+    if 'username' not in session:
+        return redirect('/')
+    return render_template('home.html')
+
+@app.route('/products')
+def products_page():
+    if 'username' not in session:
+        return redirect('/')
+    return render_template('products.html')
+
+@app.route('/cart')
+def cart_page():
+    if 'username' not in session:
+        return redirect('/')
+    return render_template('cart.html')
+
+@app.route('/order')
+def order_page():
+    if 'username' not in session:
+        return redirect('/')
+    return render_template('order.html')
+
+@app.route('/order-history')
+def order_history_page():
+    if 'username' not in session:
+        return redirect('/')
+    return render_template('order-history.html')
+
+@app.route('/contact')
+def contact_page():
+    if 'username' not in session:
+        return redirect('/')
+    return render_template('contact.html')
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.form
+    username = data.get('username')
+    password = data.get('password')
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id FROM users WHERE username=%s AND password=%s", (username, password))
+    user = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if user:
+        session['username'] = username
+        session['user_id'] = user[0]
+        return jsonify({"message": "Login successful"}), 200
+    return jsonify({"message": "Unauthorized"}), 401
+
+@app.route('/api/logout')
+def logout():
+    session.pop('username', None)
+    session.pop('user_id', None)
+    return jsonify({"message": "Logged out"}), 200
+
+@app.route('/api/products')
+def get_products():
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT id, name, price, category, image_url FROM products")
+    products = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify(products)
+
+@app.route('/api/cart', methods=['POST'])
+def add_to_cart():
+    if 'user_id' not in session:
+        return jsonify({"error": "User not logged in"}), 401
+
+    data = request.json
+    product_id = data.get('product_id')
+    quantity = int(data.get('quantity', 1))
+    user_id = session['user_id']
+
+    if not product_id:
+        return jsonify({"error": "Missing product ID"}), 400
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT id, quantity FROM cart WHERE user_id = %s AND product_id = %s", (user_id, product_id))
+    existing = cur.fetchone()
+
+    if existing:
+        new_qty = existing[1] + quantity
+        cur.execute("UPDATE cart SET quantity = %s WHERE id = %s", (new_qty, existing[0]))
+    else:
+        cur.execute("INSERT INTO cart (user_id, product_id, quantity) VALUES (%s, %s, %s)", (user_id, product_id, quantity))
+
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"message": "Added to cart"}), 200
+
+@app.route('/api/cart', methods=['GET'])
+def get_cart():
+    if 'user_id' not in session:
+        return jsonify({"error": "User not logged in"}), 401
+
+    user_id = session['user_id']
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("""
+        SELECT c.id, c.product_id, c.quantity, p.name AS product_name, p.price
+        FROM cart c
+        JOIN products p ON c.product_id = p.id
+        WHERE c.user_id = %s
+    """, (user_id,))
+    items = cur.fetchall()
+    cur.close()
+    conn.close()
+    return jsonify(items)
+
+@app.route('/api/cart/update', methods=['POST'])
+def update_cart_quantity():
+    if 'user_id' not in session:
+        return jsonify({"error": "User not logged in"}), 401
+
+    data = request.json
+    cart_id = data.get('cart_id')
+    quantity = int(data.get('quantity', 1))
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("UPDATE cart SET quantity = %s WHERE id = %s", (quantity, cart_id))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"message": "Quantity updated"}), 200
+
+@app.route('/api/cart/remove', methods=['POST'])
+def remove_cart_item():
+    if 'user_id' not in session:
+        return jsonify({"error": "User not logged in"}), 401
+
+    data = request.json
+    cart_id = data.get('cart_id')
+
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM cart WHERE id = %s", (cart_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"message": "Item removed"}), 200
+
+@app.route('/api/order', methods=['POST'])
+def place_order():
+    if 'user_id' not in session:
+        return jsonify({"error": "User not logged in"}), 401
+
+    data = request.json
+    user_id = session['user_id']
+    name = data.get('name')
+    address = data.get('address')
+    payment = data.get('payment')
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT c.product_id, c.quantity, p.price
+        FROM cart c
+        JOIN products p ON c.product_id = p.id
+        WHERE c.user_id = %s
+    """, (user_id,))
+    cart_items = cur.fetchall()
+
+    if not cart_items:
+        cur.close()
+        conn.close()
+        return jsonify({"error": "Cart is empty"}), 400
+
+    total_amount = sum(quantity * price for product_id, quantity, price in cart_items)
+
+    cur.execute("""
+        INSERT INTO orders (user_id, name, address, payment_mode, total_amount)
+        VALUES (%s, %s, %s, %s, %s)
+    """, (user_id, name, address, payment, total_amount))
+    order_id = cur.lastrowid
+
+    for product_id, quantity, price in cart_items:
+        cur.execute("""
+            INSERT INTO order_items (order_id, product_id, quantity, price)
+            VALUES (%s, %s, %s, %s)
+        """, (order_id, product_id, quantity, price))
+
+    cur.execute("DELETE FROM cart WHERE user_id = %s", (user_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    return jsonify({"message": "Order placed", "order_id": order_id}), 200
+
+@app.route('/api/order-history')
+def order_history_api():
+    if 'user_id' not in session:
+        return jsonify([])
+
+    user_id = session['user_id']
+    conn = get_db()
+    cur = conn.cursor(dictionary=True)
+    cur.execute("""
+        SELECT o.id AS order_id, o.order_date AS timestamp, o.name, o.address, o.payment_mode,
+               p.name AS product_name, oi.quantity, oi.price
+        FROM orders o
+        JOIN order_items oi ON o.id = oi.order_id
+        JOIN products p ON oi.product_id = p.id
+        WHERE o.user_id = %s
+        ORDER BY o.order_date DESC
+    """, (user_id,))
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    orders = {}
+    for row in rows:
+        oid = row['order_id']
+        if oid not in orders:
+            orders[oid] = {
+                'order_id': oid,
+                'timestamp': row['timestamp'],
+                'name': row['name'],
+                'address': row['address'],
+                'payment_mode': row['payment_mode'],
+                'items': []
+            }
+        orders[oid]['items'].append({
+            'product_name': row['product_name'],
+            'quantity': row['quantity'],
+            'price': row['price']
+        })
+
+    return jsonify(list(orders.values()))
+
+@app.route('/api/contact', methods=['POST'])
+def contact():
+    data = request.json
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        INSERT INTO contacts (name, email, message)
+        VALUES (%s, %s, %s)
+    """, (
+        data.get('name'),
+        data.get('email'),
+        data.get('message')
+    ))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"message": "Message received"}), 200
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
+
+##############################################################################################################
+
+
+db.sql file
+
+Here’s your complete and production-ready `db.sql` file, Mahesh — fully updated to include:
+
+- All required tables with relationships and constraints  
+- Sample users for login  
+- Full product catalog inserts  
+- Creation of a MySQL user `techmspire` with password `securepass` and full privileges  
+
+```sql
+-- Create the database
+CREATE DATABASE IF NOT EXISTS ecommerce_db;
+USE ecommerce_db;
+
+-- Create MySQL user and grant privileges
+CREATE USER IF NOT EXISTS 'techmspire'@'localhost' IDENTIFIED BY 'securepass';
+GRANT ALL PRIVILEGES ON ecommerce_db.* TO 'techmspire'@'localhost';
+FLUSH PRIVILEGES;
+
+-- Users table for login/signup
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+
+-- Products available in the store
+CREATE TABLE products (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    category VARCHAR(100),
+    image_url VARCHAR(500)
+);
+
+-- Cart items linked to users with quantity control
+CREATE TABLE cart (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT DEFAULT 1,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+-- Orders placed by users
+CREATE TABLE orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    address TEXT NOT NULL,
+    payment_mode VARCHAR(50) NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+    order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Items within each order
+CREATE TABLE order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    price DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+-- Contact messages from users
+CREATE TABLE contacts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    message TEXT NOT NULL
+);
+
+-- Sample users for login
+INSERT INTO users (username, email, password) VALUES
+('om', 'om@example.com', 'om@2025'),
+('nikhil', 'nikhil@example.com', 'Nikhil@2025');
+
+-- Product catalog
+INSERT INTO products (name, price, category, image_url) VALUES
+('Boat Earbuds', 1999.00, 'Audio', '/static/images/Bluetooth Earbuds.jpg'),
+('Samsung Speaker', 2569.00, 'Audio', '/static/images/Bluetooth Speaker.jpg'),
+('External HDD 1TB', 5100.00, 'Accessories', '/static/images/External HDD 1TB.jpg'),
+('Fitness Band', 3100.00, 'Accessories', '/static/images/Fitness Band.jpg'),
+('Gaming Monitor', 11450.00, 'Laptops', '/static/images/Gaming Monitor 24.jpg'),
+('Laptop 14-inch', 43999.00, 'Audio', '/static/images/Laptop 14-inch.jpg'),
+('HP Laser Printer', 8759.00, 'Audio', '/static/images/Laser Printer.jpg'),
+('Mechanical Keyboard', 1300.00, 'Audio', '/static/images/Mechanical Keyboard.jpg'),
+('Soundbar 2.1', 9999.00, 'Audio', '/static/images/Soundbar 2.1.jpg'),
+('USB-C Cable', 999.00, 'Audio', '/static/images/USB-C Cable.jpg'),
+('Samsung Webcam HD', 4599.00, 'Audio', '/static/images/Webcam HD.jpg'),
+('Wireless Mouse', 2699.00, 'Audio', '/static/images/Wireless Mouse.jpg'),
+('Smartphone X1', 23999.00, 'Mobiles', '/static/images/Smartphone X1.jpg'),
+('Samsung Speaker', 8999.00, 'Audio', '/static/images/Smart TV 43.jpg'),
+('Router Dual Band', 3726.00, 'Accessories', '/static/images/Router Dual Band.jpg'),
+('Power Bank 20,000mAh', 1999.00, 'Accessories', '/static/images/Power Bank 20,000mAh.jpg'),
+('Soundbar 2.1', 1999.00, 'Audio', '/static/images/Soundbar 2.1.jpg'),
+('Smartwatch Pro', 1999.00, 'Accessories', '/static/images/Smartwatch Pro.jpg'),
+('Smartphone X1', 1999.00, 'Mobiles', '/static/images/Smartphone X1.jpg');
+```
+
+---
+
+### ✅ Ready for Deployment
+
+This file is now fully equipped to:
+- Support login/signup
+- Display and manage products
+- Handle cart operations with quantity control
+- Process orders with multiple payment modes
+- Track detailed order history
+- Accept user contact messages
+- Operate under a secure MySQL user with full access
+
+Let me know if you'd like help integrating this with your Flask backend or building out the HTML templates for cart, checkout, and order history. I can also help you add admin dashboards or analytics if you're planning to scale this further.
+################################################################################
+
+
+Plat no. 205, Chandrapur-Nagpur Highway, At Post-Bhadravati, Dist-Chandrapur, Maharashtra - 442902
+
+
+######################################################################################################
+
+
+Command History
+
+ sudo apt update && sudo apt upgrade -y
+    2  sudo apt update
+    3  sudo apt install python3-pip python3-venv nginx mysql-server
+    4  sudo chown -R ubuntu:ubuntu /var/www/html
+    5  sudo chmod -R 755 /var/www/html
+    6  cd /var/www/html
+    7  pwd
+    8  ll
+    9  rm -rf index.nginx-debian.html
+   10  vi requirements.txt
+   11  ls -l
+   12  python3 -m venv venv
+   13  source venv/bin/activate
+   14  pip install -r requirements.txt
+   15  ls -l
+   16  mysql_secure_installation
+   17  sudo mysql_secure_installation
+   18  mysql -u root -p
+   19  sudo mysql -u root -p
+   20  ls -l
+   21  vi db.sql
+   22  cat db.sql
+   23  sudo systemctl start mysql
+   24  sudo mysql -u root -p < db.sql
+   25  mysql -u techmspire -p
+   26  ls -l
+   27  vi app.py
+   28  ls -l
+   29  mkdir api
+   30  ls -l
+   31  sudo apt install vsftpd
+   32  mkdir images
+   33  ls -l
+   34  cp -r /home/ubuntu/images/* images/
+   35  ls -l images/
+   36  cp -r /home/ubuntu/api/* api/
+   37  ls -l
+   38  cd /etc/nginx/sites-available/
+   39  ls -l
+   40  vi techmspire.conf
+   41  sudo vi techmspire.conf
+   42  ls -l
+   43  sudo ln -s /etc/nginx/sites-available/techmspire.conf /etc/nginx/sites-enabled/
+   44  cd ../sites-enabled/
+   45  ls -l
+   46  cd ../sites-available/
+   47  ls -l
+   48  sudo mv default /home/ubuntu/
+   49  cd ../sites-enabled/
+   50  ls -l
+   51  sudo systemctl restart nginx
+   52  journalctl -xeu nginx.service
+   53  sudo nginx -t
+   54  sudo vi /etc/nginx/nginx.conf
+   55  sudo nginx -t
+   56  sudo systemctl restart nginx
+   57  cd /var/www/html/
+   58  ls -l
+   59  gunicorn --bind 127.0.0.1:5000 app:app
+
+
+
+############################################END############################################
+
+
+
+Single Click Installation Script 
+
+BASH SCRIPT AFTER COPYING THE CODE INSIDE /var/www/html/
+
+
+#!/bin/bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+echo "🔄 Updating system packages..."
+sudo apt update && sudo apt upgrade -y
+
+echo "📦 Installing dependencies..."
+sudo apt install -y python3-pip python3-venv nginx mysql-server vsftpd
+
+echo "🧹 Removing default Nginx index page..."
+rm -rf /var/www/html/index.nginx-debian.html
+
+echo "🔧 Setting permissions for /var/www/html..."
+sudo chown -R ubuntu:ubuntu /var/www/html
+sudo chmod -R 755 /var/www/html
+
+cd /var/www/html
+
+echo "📝 Creating requirements.txt..."
+cat <<EOF > requirements.txt
+Flask
+mysql-connector-python
+gunicorn
+EOF
+
+echo "🐍 Setting up Python virtual environment..."
+cd /var/www/html
+
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+echo "🔐 Securing MySQL installation..."
+sudo mysql_secure_installation <<EOF
+
+y
+0
+y
+n
+y
+y
+EOF
+
+echo "🗄️ Importing database..."
+sudo mysql -u root -p < /var/www/html/db.sql
+
+echo "🌐 Creating Nginx config for techmspire..."
+sudo tee /etc/nginx/sites-available/techmspire.conf > /dev/null <<EOF
+server {
+    listen 80;
+    server_name your_domain_or_ip;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+
+    location /static/ {
+        alias /var/www/html/api/;
+    }
+}
+EOF
+
+echo "🧹 Removing default Nginx site configs..."
+sudo rm -rf /etc/nginx/sites-available/default
+sudo rm -rf /etc/nginx/sites-enabled/default
+
+echo "🔗 Enabling techmspire site..."
+sudo ln -s /etc/nginx/sites-available/techmspire.conf /etc/nginx/sites-enabled/
+
+echo "🔄 Restarting Nginx and MySQL..."
+sudo systemctl restart nginx
+sudo systemctl restart mysql.service
+
+echo "⚙️ Creating Gunicorn systemd service..."
+sudo tee /etc/systemd/system/gunicorn.service > /dev/null <<EOF
+[Unit]
+Description=Gunicorn for Techmspire Flask app
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/var/www/html
+Environment="PATH=/var/www/html/venv/bin"
+ExecStart=/var/www/html/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:5000 app:app
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo "🔁 Reloading systemd and starting Gunicorn..."
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl start gunicorn
+sudo systemctl enable gunicorn
+
+echo "🐍 Re-activating virtual environment and installing dependencies..."
+source /var/www/html/venv/bin/activate
+pip install -r /var/www/html/requirements.txt
+
+
+echo "🔄 Restarting Gunicorn service..."
+sudo systemctl restart gunicorn.service
+
+echo "✅ All steps completed! Your Techmspire app is now live and running."
+
+
+########################################################3
+
+
+
