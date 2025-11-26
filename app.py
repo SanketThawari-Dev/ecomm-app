@@ -6,8 +6,8 @@ app.secret_key = 'super_secret_key'
 
 DB_CONFIG = {
     'host': 'localhost',
-    'user': 'techmspire',
-    'password': 'securepass',
+    'user': 'sanket',
+    'password': 'pass',
     'database': 'ecommerce_db'
 }
 
