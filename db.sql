@@ -3,8 +3,8 @@ CREATE DATABASE IF NOT EXISTS ecommerce_db;
 USE ecommerce_db;
 
 -- Create MySQL user and grant privileges
-CREATE USER IF NOT EXISTS 'techmspire'@'localhost' IDENTIFIED BY 'securepass';
-GRANT ALL PRIVILEGES ON ecommerce_db.* TO 'techmspire'@'localhost';
+CREATE USER IF NOT EXISTS 'sanket'@'localhost' IDENTIFIED BY 'pass';
+GRANT ALL PRIVILEGES ON ecommerce_db.* TO 'sanket'@'localhost';
 FLUSH PRIVILEGES;
 
 -- Users table for login/signup
